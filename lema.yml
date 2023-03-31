@@ -1,0 +1,64 @@
+header:
+  version: 11
+
+repos:
+  poky: # (yocto-4.0.6 kirkstone)
+    url: "https://git.yoctoproject.org/poky"
+    refspec: kirkstone
+    layers:
+      meta:
+      meta-poky:
+  meta-openembedded: # kirkstone
+    url: "https://git.openembedded.org/meta-openembedded"
+    refspec: kirkstone
+    layers:
+      meta-oe:
+      meta-python:
+  meta-raspberrypi: # kirkstone
+    url: "https://git.yoctoproject.org/meta-raspberrypi"
+    refspec: kirkstone
+  meta-lema:
+    url: "https://github.com/schoener-one/meta-lema.git"
+    refspec: master
+
+machine: "raspberrypi4"
+target: "core-image-base-lema"
+env: 
+  LEMA_SYSTEM_VERSION: "1.0.0"
+  LEMA_BUILD_REVISION: ""
+  ROOT_PASSWORD: ""
+
+local_conf_header:
+  meta-lema: |
+    # Yocto settings
+    CONF_VERSION = "2"
+    PACKAGE_CLASSES ?= "package_rpm"
+    EXTRA_IMAGE_FEATURES ?= "debug-tweaks tools-debug tools-sdk"
+    USER_CLASSES ?= "buildstats"
+    PATCHRESOLVE = "noop"
+    BB_DISKMON_DIRS ??= "\
+        STOPTASKS,${TMPDIR},1G,100K \
+        STOPTASKS,${DL_DIR},1G,100K \
+        STOPTASKS,${SSTATE_DIR},1G,100K \
+        STOPTASKS,/tmp,100M,100K \
+        HALT,${TMPDIR},100M,1K \
+        HALT,${DL_DIR},100M,1K \
+        HALT,${SSTATE_DIR},100M,1K \
+        HALT,/tmp,10M,1K"
+    #
+    # Raspberry PI feature configurations
+    ENABLE_SPI_BUS = "1"
+    ENABLE_I2C = "1"
+    ENABLE_UART = "1"
+
+    #
+    # Add systemctl init manager
+    DISTRO_FEATURES:append = " systemd"
+    DISTRO_FEATURES_BACKFILL_CONSIDERED += "sysvinit"
+    VIRTUAL-RUNTIME_login_manager = "shadow-base"
+    VIRTUAL-RUNTIME_init_manager = "systemd"
+    VIRTUAL-RUNTIME_initscripts = ""
+
+    #
+    # Remove unnessecary features
+    DISTRO_FEATURES:remove = " x11 wayland bluez5 bluetooth"
